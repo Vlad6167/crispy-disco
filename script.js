@@ -1,24 +1,23 @@
+// script.js (исправленный)
 document.addEventListener('DOMContentLoaded', function() {
-    // ========== Переключение темы ==========
+    // ===== Тема =====
     const themeToggle = document.getElementById('themeToggle');
     const body = document.body;
     
-    // Проверяем сохраненную тему
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
+    // Загрузка темы
+    if (localStorage.getItem('theme') === 'dark') {
         body.classList.add('dark');
         themeToggle.textContent = '🌞 Светлая тема';
     }
-    
-    // Обработчик переключения темы
-    themeToggle.addEventListener('click', function() {
+
+    themeToggle.addEventListener('click', () => {
         body.classList.toggle('dark');
         const isDark = body.classList.contains('dark');
-        themeToggle.textContent = isDark ? '🌞 Светлая тема' : '🌓 Тёмная тема';
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        themeToggle.textContent = isDark ? '🌞 Светлая тема' : '🌓 Темная тема';
     });
 
-    // ========== Галерея изображений ==========
+    // ===== Галерея =====
     let currentIndex = 0;
     const images = document.querySelectorAll('.gallery-img');
     const totalImages = images.length;
@@ -28,27 +27,74 @@ document.addEventListener('DOMContentLoaded', function() {
         images.forEach(img => img.classList.remove('active'));
         images[index].classList.add('active');
         currentIndex = index;
-        resetGalleryInterval();
     }
 
-    function resetGalleryInterval() {
-        clearInterval(galleryInterval);
+    function startGallery() {
         galleryInterval = setInterval(() => {
-            currentIndex = (currentIndex + 1) % totalImages;
-            showImage(currentIndex);
+            showImage((currentIndex + 1) % totalImages);
         }, 3000);
     }
 
     document.getElementById('nextBtn').addEventListener('click', () => {
+        clearInterval(galleryInterval);
         showImage((currentIndex + 1) % totalImages);
+        startGallery();
     });
 
     document.getElementById('prevBtn').addEventListener('click', () => {
+        clearInterval(galleryInterval);
         showImage((currentIndex - 1 + totalImages) % totalImages);
+        startGallery();
     });
 
     showImage(0);
-    resetGalleryInterval();
+    startGallery();
+
+    // ===== Модальное окно =====
+    const authModal = document.getElementById('authModal');
+    const authForm = document.getElementById('authForm');
+    const registerBtn = document.getElementById('registerBtn');
+    let currentUser = localStorage.getItem('currentUser') || null;
+
+    function toggleModal(show) {
+        authModal.style.display = show ? 'flex' : 'none';
+    }
+
+    // Закрытие по клику вне окна
+    authModal.addEventListener('click', (e) => {
+        if (e.target === authModal) toggleModal(false);
+    });
+
+    // Закрытие по крестику
+    document.querySelector('.modal-content .close').addEventListener('click', () => {
+        toggleModal(false);
+    });
+
+    // ===== Социальная сеть =====
+    function loadPosts() {
+        const posts = JSON.parse(localStorage.getItem('posts')) || [];
+        postsContainer.innerHTML = posts.map((post, index) => `
+            <div class="post">
+                <div class="post-header">
+                    <strong>${post.author}</strong>
+                    ${post.author === currentUser ? 
+                        `<button class="delete-post" data-id="${index}">Удалить</button>` : ''}
+                </div>
+                <div class="post-content">${post.content}</div>
+                <div class="post-date">${new Date(post.date).toLocaleString()}</div>
+            </div>
+        `).join('');
+    }
+
+    // Проверка авторизации при загрузке
+    if (!currentUser) {
+        toggleModal(true);
+    } else {
+        loadPosts();
+    }
+
+    // Остальной код...
+});
 
     // ========== Форма обратной связи ==========
     const form = document.getElementById('feedbackForm');
@@ -256,7 +302,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleLike(postId) {
         const posts = JSON.parse(localStorage.getItem('posts')) || [];
         const post = posts[postId];
-        
+        // В script.js
+function resetGalleryInterval() {
+  clearInterval(galleryInterval);
+  galleryInterval = setInterval(() => {
+    showImage((currentIndex + 1) % totalImages);
+  }, 3000); // 3 секунды
+}
         if (!post.likes) post.likes = [];
         const userIndex = post.likes.indexOf(currentUser);
         
@@ -320,8 +372,25 @@ document.addEventListener('DOMContentLoaded', function() {
             showMessage("Ошибка загрузки проверки безопасности", "error");
         }
     }, 5000);
+
+// Закрытие по клику вне окна
+document.addEventListener('click', (e) => {
+  if (e.target === authModal) toggleAuthModal(false);
 });
 
+// Валидация формы
+authForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  
+  if (!username || !password) {
+    alert('Заполните все поля!');
+    return;
+  }
+  
+  // ...остальная логика
+});
 // Глобальная функция для reCAPTCHA
 function onRecaptchaSuccess() {
     const submitBtn = document.getElementById('submitBtn');

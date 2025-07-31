@@ -419,4 +419,28 @@ body.dark .modal-content {
 }
 @media (max-width: 600px) {
     .card { width: 95%; }
+}/* Добавьте в style.css */
+body.dark {
+  background-color: #121212;
+  color: #fff;
+}
+
+body.dark .card {
+  background-color: #1e1e1e;
+  border-color: #333;
+}.modal-content {
+  width: 90%;
+  max-width: 400px;
+}/* Добавьте в конец style.css */
+#authModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
 }
