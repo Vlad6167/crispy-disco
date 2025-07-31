@@ -26,8 +26,6 @@ document.addEventListener('DOMContentLoaded', function() {
         images.forEach(img => img.classList.remove('active'));
         images[index].classList.add('active');
         currentIndex = index;
-        
-        // Перезапускаем авто-прокрутку после ручного переключения
         resetGalleryInterval();
     }
 
@@ -47,13 +45,13 @@ document.addEventListener('DOMContentLoaded', function() {
         showImage((currentIndex - 1 + totalImages) % totalImages);
     });
 
-    // Запускаем галерею
     showImage(0);
     resetGalleryInterval();
 
     // Форма обратной связи
     const form = document.getElementById('feedbackForm');
     const formMessage = document.getElementById('formMessage');
+    const submitBtn = document.getElementById('submitBtn');
 
     function validateEmail(email) {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -62,12 +60,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function showMessage(text, type) {
         formMessage.textContent = text;
-        formMessage.className = type; // 'success' или 'error'
+        formMessage.className = type;
         formMessage.classList.remove('hidden');
         
         setTimeout(() => {
             formMessage.classList.add('hidden');
         }, 5000);
+    }
+
+    // Функция для проверки reCAPTCHA
+    function verifyRecaptcha() {
+        return new Promise((resolve) => {
+            if (typeof grecaptcha === 'undefined' || !grecaptcha.getResponse()) {
+                showMessage("Пожалуйста, подтвердите что вы не робот", "error");
+                resolve(false);
+            } else {
+                resolve(true);
+            }
+        });
     }
 
     form.addEventListener('submit', async function(e) {
@@ -81,6 +91,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            // Проверка reCAPTCHA
+            const isRecaptchaValid = await verifyRecaptcha();
+            if (!isRecaptchaValid) return;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Отправка...';
+
             const response = await fetch(form.action, {
                 method: 'POST',
                 body: new FormData(form),
@@ -91,7 +108,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 showMessage("Сообщение отправлено! Скоро отвечу.", "success");
                 form.reset();
                 
-                // Сбрасываем reCAPTCHA, если используется
                 if (window.grecaptcha) {
                     grecaptcha.reset();
                 }
@@ -101,6 +117,20 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             showMessage("Ошибка отправки. Попробуйте позже.", "error");
             console.error('Ошибка:', error);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Отправить';
         }
     });
+
+    // Проверка загрузки reCAPTCHA
+    function checkRecaptchaLoad() {
+        if (typeof grecaptcha === 'undefined') {
+            console.error('reCAPTCHA не загрузилась');
+            showMessage("Ошибка загрузки проверки безопасности", "error");
+        }
+    }
+
+    // Проверяем через 5 секунд после загрузки
+    setTimeout(checkRecaptchaLoad, 5000);
 });
