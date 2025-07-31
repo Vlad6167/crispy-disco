@@ -137,11 +137,112 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // ========== Социальная сеть ==========
+    const postButton = document.getElementById('postButton');
+    const postContent = document.getElementById('postContent');
+    const postsContainer = document.getElementById('postsContainer');
+
+    // Загрузка постов из localStorage
+    function loadPosts() {
+        const posts = JSON.parse(localStorage.getItem('posts')) || [];
+        postsContainer.innerHTML = '';
+        
+        posts.forEach((post, index) => {
+            const postElement = document.createElement('div');
+            postElement.className = 'post';
+            postElement.innerHTML = `
+                <div class="post-content">${post.content}</div>
+                <div class="post-actions">
+                    <button class="like-btn" data-id="${index}">
+                        ${post.liked ? '❤️' : '🤍'} ${post.likes}
+                    </button>
+                </div>
+                <div class="post-date">${new Date(post.date).toLocaleString()}</div>
+            `;
+            postsContainer.prepend(postElement);
+        });
+
+        // Добавляем обработчики лайков
+        document.querySelectorAll('.like-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                toggleLike(parseInt(this.dataset.id));
+            });
+        });
+    }
+
+    // Добавление нового поста
+    function addPost() {
+        const content = postContent.value.trim();
+        if (!content) return;
+        
+        const posts = JSON.parse(localStorage.getItem('posts')) || [];
+        const newPost = {
+            content: content,
+            date: new Date().toISOString(),
+            likes: 0,
+            liked: false
+        };
+        
+        posts.push(newPost);
+        localStorage.setItem('posts', JSON.stringify(posts));
+        
+        postContent.value = '';
+        loadPosts();
+    }
+
+    // Обработка лайков
+    function toggleLike(postId) {
+        const posts = JSON.parse(localStorage.getItem('posts')) || [];
+        const post = posts[postId];
+        
+        if (post.liked) {
+            post.likes--;
+            post.liked = false;
+        } else {
+            post.likes++;
+            post.liked = true;
+        }
+        
+        localStorage.setItem('posts', JSON.stringify(posts));
+        loadPosts();
+    }
+
+    // Обработчики событий
+    if (postButton && postContent && postsContainer) {
+        postButton.addEventListener('click', addPost);
+        postContent.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                addPost();
+            }
+        });
+
+        // Инициализация
+        loadPosts();
+    }
+
     // Проверяем через 5 секунд после загрузки
     setTimeout(checkRecaptchaLoad, 5000);
 });
 
 // Глобальная функция для reCAPTCHA
 function onRecaptchaSuccess() {
-    document.getElementById('submitBtn').disabled = false;
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+    }
 }
+
+// Firebase инициализация (если нужно)
+// Должна быть в отдельном модуле или в начале файла
+/*
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, push, onValue } from "firebase/database";
+
+const firebaseConfig = {
+    // Ваши настройки Firebase
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+*/
