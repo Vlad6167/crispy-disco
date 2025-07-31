@@ -1,14 +1,16 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Переключение темы
+    // ========== Переключение темы ==========
     const themeToggle = document.getElementById('themeToggle');
     const body = document.body;
     
+    // Проверяем сохраненную тему
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
         body.classList.add('dark');
         themeToggle.textContent = '🌞 Светлая тема';
     }
     
+    // Обработчик переключения темы
     themeToggle.addEventListener('click', function() {
         body.classList.toggle('dark');
         const isDark = body.classList.contains('dark');
@@ -16,12 +18,13 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
     });
 
-    // Галерея изображений
+    // ========== Галерея изображений ==========
     let currentIndex = 0;
     const images = document.querySelectorAll('.gallery-img');
     const totalImages = images.length;
     let galleryInterval;
 
+    // Показ текущего изображения
     function showImage(index) {
         images.forEach(img => img.classList.remove('active'));
         images[index].classList.add('active');
@@ -29,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
         resetGalleryInterval();
     }
 
+    // Сброс интервала автопрокрутки
     function resetGalleryInterval() {
         clearInterval(galleryInterval);
         galleryInterval = setInterval(() => {
@@ -37,6 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
 
+    // Кнопки навигации
     document.getElementById('nextBtn').addEventListener('click', () => {
         showImage((currentIndex + 1) % totalImages);
     });
@@ -45,19 +50,22 @@ document.addEventListener('DOMContentLoaded', function() {
         showImage((currentIndex - 1 + totalImages) % totalImages);
     });
 
+    // Инициализация галереи
     showImage(0);
     resetGalleryInterval();
 
-    // Форма обратной связи
+    // ========== Форма обратной связи ==========
     const form = document.getElementById('feedbackForm');
     const formMessage = document.getElementById('formMessage');
     const submitBtn = document.getElementById('submitBtn');
 
+    // Валидация email
     function validateEmail(email) {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);
     }
 
+    // Показать сообщение
     function showMessage(text, type) {
         formMessage.textContent = text;
         formMessage.className = type;
@@ -68,18 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     }
 
-    // Функция для проверки reCAPTCHA
-    function verifyRecaptcha() {
-        return new Promise((resolve) => {
-            if (typeof grecaptcha === 'undefined' || !grecaptcha.getResponse()) {
-                showMessage("Пожалуйста, подтвердите что вы не робот", "error");
-                resolve(false);
-            } else {
-                resolve(true);
-            }
-        });
-    }
-
+    // Обработка отправки формы
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -92,38 +89,47 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Проверка reCAPTCHA
-            const isRecaptchaValid = await verifyRecaptcha();
-            if (!isRecaptchaValid) return;
+            if (typeof grecaptcha === 'undefined' || !grecaptcha.getResponse()) {
+                showMessage("Пожалуйста, подтвердите что вы не робот", "error");
+                return;
+            }
 
+            // Блокируем кнопку во время отправки
             submitBtn.disabled = true;
             submitBtn.textContent = 'Отправка...';
 
+            // Отправка данных
             const response = await fetch(form.action, {
                 method: 'POST',
                 body: new FormData(form),
-                headers: { 'Accept': 'application/json' }
+                headers: { 
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             });
 
             if (response.ok) {
                 showMessage("Сообщение отправлено! Скоро отвечу.", "success");
                 form.reset();
                 
+                // Сброс reCAPTCHA
                 if (window.grecaptcha) {
                     grecaptcha.reset();
+                    submitBtn.disabled = true;
                 }
             } else {
-                throw new Error('Ошибка сервера');
+                throw new Error(await response.text());
             }
         } catch (error) {
-            showMessage("Ошибка отправки. Попробуйте позже.", "error");
             console.error('Ошибка:', error);
+            showMessage("Ошибка отправки. Попробуйте позже.", "error");
         } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = 'Отправить';
         }
     });
 
-    // Проверка загрузки reCAPTCHA
+    // ========== Проверка загрузки reCAPTCHA ==========
     function checkRecaptchaLoad() {
         if (typeof grecaptcha === 'undefined') {
             console.error('reCAPTCHA не загрузилась');
@@ -134,3 +140,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Проверяем через 5 секунд после загрузки
     setTimeout(checkRecaptchaLoad, 5000);
 });
+
+// Глобальная функция для reCAPTCHA
+function onRecaptchaSuccess() {
+    document.getElementById('submitBtn').disabled = false;
+}
