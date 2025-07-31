@@ -65,13 +65,17 @@ img {
 body.dark {
   background-color: var(--bg-dark);
   color: var(--text-dark);
+  
 }
 
 body.dark .card {
   background: var(--card-dark);
   box-shadow: 0 4px 6px var(--shadow-dark);
 }
-
+.dark-theme {
+    background: #1a1a1a;
+    color: #f0f0f0;
+}
 body.dark #themeToggle {
   background: #555;
   color: white;
