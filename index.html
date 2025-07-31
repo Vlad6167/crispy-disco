@@ -1,47 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-   <!DOCTYPE html>
-<html>
-<head>
-  <!-- Другие мета-теги -->
-  <title>Мой сайт-портфолио</title>
-  
-  <!-- Schema.org разметка -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Person",
-    "name": "Владислав",
-    "jobTitle": "Веб-разработчик"
-  }
-  </script>
-</head>
-  </script>
-</head>
-    <link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" href="/icon.svg" type="C:\Users\tanya\Desktop\Обуу\crispy-disco\Логотип Владислав Марченко.jpg">
-    <script type="text/javascript">
-var _iub = _iub || [];
-_iub.csConfiguration = {"siteId":4185080,"cookiePolicyId":74112563,"lang":"ru","storage":{"useSiteId":true}};
-</script>
-<script type="text/javascript" src="https://cs.iubenda.com/autoblocking/4185080.js"></script>
-<script type="text/javascript" src="//cdn.iubenda.com/cs/gpp/stub.js"></script>
-<script type="text/javascript" src="//cdn.iubenda.com/cs/iubenda_cs.js" charset="UTF-8" async></script>
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-LVXW3SWQ7J"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-LVXW3SWQ7J');
-</script>
-    <title>Моя первая страница</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Добавляем meta-теги для корректного отображения на мобильных -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой сайт-портфолио</title>
+    
+    <!-- Schema.org разметка -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Владислав",
+        "jobTitle": "Веб-разработчик"
+    }
+    </script>
+    
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Скрипты -->
+    <script type="text/javascript">
+        var _iub = _iub || [];
+        _iub.csConfiguration = {"siteId":4185080,"cookiePolicyId":74112563,"lang":"ru","storage":{"useSiteId":true}};
+    </script>
+    <script type="text/javascript" src="https://cs.iubenda.com/autoblocking/4185080.js"></script>
+    <script type="text/javascript" src="//cdn.iubenda.com/cs/gpp/stub.js"></script>
+    <script type="text/javascript" src="//cdn.iubenda.com/cs/iubenda_cs.js" charset="UTF-8" async></script>
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LVXW3SWQ7J"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-LVXW3SWQ7J');
+    </script>
 </head>
 <body>
     <div class="card">
@@ -67,16 +60,18 @@ _iub.csConfiguration = {"siteId":4185080,"cookiePolicyId":74112563,"lang":"ru","
             <div class="gallery-controls">
                 <button id="prevBtn">← Назад</button>
                 <button id="nextBtn">Вперёд →</button>
-            <div class="social-feed">
-    <h2>Моя мини-соцсеть</h2>
-    <div class="post-form">
-        <textarea id="postContent" placeholder="Что у вас нового?"></textarea>
-        <button id="postButton">Опубликовать</button>
-    </div>
-    <div id="postsContainer"></div>
-</div>
+            </div>
         </div>
-        <div id="authModal" class="modal hidden"> ... </div>
+        
+        <div class="social-feed">
+            <h2>Моя мини-соцсеть</h2>
+            <div class="post-form">
+                <textarea id="postContent" placeholder="Что у вас нового?"></textarea>
+                <button id="postButton">Опубликовать</button>
+            </div>
+            <div id="postsContainer"></div>
+        </div>
+        
         <div class="contact-form">
             <h2>Напиши мне</h2>
             <form action="https://formspree.io/f/manbbdro" method="POST" id="feedbackForm">
@@ -84,7 +79,7 @@ _iub.csConfiguration = {"siteId":4185080,"cookiePolicyId":74112563,"lang":"ru","
                 <input type="email" name="email" placeholder="Email" required>
                 <textarea name="message" placeholder="Ваше сообщение..." rows="4" required></textarea>
                 
-                <!-- Капча - важно указать правильный data-sitekey -->
+                <!-- Капча -->
                 <div class="g-recaptcha" 
                      data-sitekey="6LfropUrAAAAABPu9UiPo3Tso7-WRdv4KNpVWPlL"
                      data-callback="onRecaptchaSuccess">
@@ -93,6 +88,26 @@ _iub.csConfiguration = {"siteId":4185080,"cookiePolicyId":74112563,"lang":"ru","
                 <button type="submit" id="submitBtn" disabled>Отправить</button>
             </form>
             <div id="formMessage" class="hidden"></div>
+        </div>
+        
+        <!-- Модальное окно регистрации (только одно!) -->
+        <div id="authModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Регистрация/Вход</h2>
+                <form id="authForm">
+                    <input type="text" id="username" placeholder="Имя пользователя" required>
+                    <input type="password" id="password" placeholder="Пароль" required>
+                    <button type="submit">Войти</button>
+                    <button type="button" id="registerBtn">Зарегистрироваться</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="social-links">
+            <a href="https://vk.com" target="_blank">VK</a>
+            <a href="https://telegram.org" target="_blank">Telegram</a>
+            <a href="https://github.com" target="_blank">GitHub</a>
         </div>
         
         <div class="footer">
@@ -104,7 +119,6 @@ _iub.csConfiguration = {"siteId":4185080,"cookiePolicyId":74112563,"lang":"ru","
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="script.js"></script>
     
-    <!-- Дополнительный скрипт для обработки капчи -->
     <script>
         // Функция, которая вызывается при успешном прохождении капчи
         function onRecaptchaSuccess() {
@@ -126,25 +140,5 @@ _iub.csConfiguration = {"siteId":4185080,"cookiePolicyId":74112563,"lang":"ru","
             setTimeout(checkRecaptcha, 5000);
         });
     </script>
-    <!-- Модальное окно регистрации -->
-<div id="authModal" class="modal hidden">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Регистрация/Вход</h2>
-        <form id="authForm">
-            <input type="text" id="username" placeholder="Имя пользователя" required>
-            <input type="password" id="password" placeholder="Пароль" required>
-            <button type="submit">Войти</button>
-            <button type="button" id="registerBtn">Зарегистрироваться</button>
-        </form>
-    </div>
-</div>
-
-<!-- Ссылки на соцсети -->
-<div class="social-links">
-    <a href="https://vk.com" target="_blank">VK</a>
-    <a href="https://telegram.org" target="_blank">Telegram</a>
-    <a href="https://github.com" target="_blank">GitHub</a>
-</div>
 </body>
 </html>

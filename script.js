@@ -49,7 +49,21 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('prevBtn').addEventListener('click', () => {
         showImage((currentIndex - 1 + totalImages) % totalImages);
     });
+document.addEventListener('DOMContentLoaded', function() {
+    // ... остальной код ...
 
+    // Закрытие по клику вне окна
+    document.getElementById('authModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            toggleAuthModal(false);
+        }
+    });
+
+    // Закрытие по крестику
+    document.querySelector('.close').addEventListener('click', function() {
+        toggleAuthModal(false);
+    });
+});
     // Инициализация галереи
     showImage(0);
     resetGalleryInterval();
@@ -356,9 +370,10 @@ function checkAuth() {
     const user = localStorage.getItem('currentUser');
     if (user) {
         currentUser = user;
+        toggleAuthModal(false); // Скрываем модалку
         return true;
     } else {
-        toggleAuthModal(); // Показываем окно, если нет авторизации
+        toggleAuthModal(true); // Показываем модалку
         return false;
     }
 }
@@ -366,11 +381,16 @@ if (!username || !password) {
     alert('Заполните все поля!');
     return;
 }
-authModal.addEventListener('click', (e) => {
-    if (e.target === authModal) {
-        toggleAuthModal();
+function toggleAuthModal(show = null) {
+    const authModal = document.getElementById('authModal');
+    if (show === true) {
+        authModal.classList.remove('hidden');
+    } else if (show === false) {
+        authModal.classList.add('hidden');
+    } else {
+        authModal.classList.toggle('hidden');
     }
-});
+}
 // Глобальная функция для reCAPTCHA
 function onRecaptchaSuccess() {
     const submitBtn = document.getElementById('submitBtn');
