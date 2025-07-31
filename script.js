@@ -342,7 +342,35 @@ document.addEventListener('DOMContentLoaded', function() {
     // Проверяем через 5 секунд после загрузки
     setTimeout(checkRecaptchaLoad, 5000);
 });
-
+registerBtn.addEventListener('click', function() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    
+    if (registerUser(username, password)) {
+        loginUser(username, password); // Авторизуем после регистрации
+        toggleAuthModal();
+        loadPosts();
+    }
+});
+function checkAuth() {
+    const user = localStorage.getItem('currentUser');
+    if (user) {
+        currentUser = user;
+        return true;
+    } else {
+        toggleAuthModal(); // Показываем окно, если нет авторизации
+        return false;
+    }
+}
+if (!username || !password) {
+    alert('Заполните все поля!');
+    return;
+}
+authModal.addEventListener('click', (e) => {
+    if (e.target === authModal) {
+        toggleAuthModal();
+    }
+});
 // Глобальная функция для reCAPTCHA
 function onRecaptchaSuccess() {
     const submitBtn = document.getElementById('submitBtn');
