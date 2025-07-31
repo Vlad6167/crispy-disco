@@ -129,18 +129,71 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ========== Проверка загрузки reCAPTCHA ==========
-    function checkRecaptchaLoad() {
-        if (typeof grecaptcha === 'undefined') {
-            console.error('reCAPTCHA не загрузилась');
-            showMessage("Ошибка загрузки проверки безопасности", "error");
-        }
-    }
-
     // ========== Социальная сеть ==========
     const postButton = document.getElementById('postButton');
     const postContent = document.getElementById('postContent');
     const postsContainer = document.getElementById('postsContainer');
+    const authModal = document.getElementById('authModal');
+    const closeModal = document.querySelector('.close');
+    const authForm = document.getElementById('authForm');
+    const registerBtn = document.getElementById('registerBtn');
+
+    // Текущий пользователь
+    let currentUser = null;
+
+    // Показать/скрыть модальное окно
+    function toggleAuthModal() {
+        authModal.classList.toggle('hidden');
+    }
+
+    // Загрузка пользователей из localStorage
+    function getUsers() {
+        return JSON.parse(localStorage.getItem('users')) || [];
+    }
+
+    // Регистрация нового пользователя
+    function registerUser(username, password) {
+        const users = getUsers();
+        
+        if (users.some(u => u.username === username)) {
+            alert('Пользователь уже существует!');
+            return false;
+        }
+        
+        users.push({ username, password });
+        localStorage.setItem('users', JSON.stringify(users));
+        return true;
+    }
+
+    // Авторизация пользователя
+    function loginUser(username, password) {
+        const users = getUsers();
+        const user = users.find(u => u.username === username && u.password === password);
+        
+        if (user) {
+            currentUser = username;
+            localStorage.setItem('currentUser', username);
+            return true;
+        }
+        
+        return false;
+    }
+
+    // Выход пользователя
+    function logoutUser() {
+        currentUser = null;
+        localStorage.removeItem('currentUser');
+    }
+
+    // Проверка авторизации
+    function checkAuth() {
+        const user = localStorage.getItem('currentUser');
+        if (user) {
+            currentUser = user;
+            return true;
+        }
+        return false;
+    }
 
     // Загрузка постов из localStorage
     function loadPosts() {
@@ -151,10 +204,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const postElement = document.createElement('div');
             postElement.className = 'post';
             postElement.innerHTML = `
+                <div class="post-header">
+                    <strong>${post.author || 'Аноним'}</strong>
+                    ${currentUser === post.author ? 
+                      `<button class="delete-post" data-id="${index}">Удалить</button>` : ''}
+                </div>
                 <div class="post-content">${post.content}</div>
                 <div class="post-actions">
                     <button class="like-btn" data-id="${index}">
-                        ${post.liked ? '❤️' : '🤍'} ${post.likes}
+                        ${post.likes?.includes(currentUser) ? '❤️' : '🤍'} ${post.likes?.length || 0}
                     </button>
                 </div>
                 <div class="post-date">${new Date(post.date).toLocaleString()}</div>
@@ -165,22 +223,38 @@ document.addEventListener('DOMContentLoaded', function() {
         // Добавляем обработчики лайков
         document.querySelectorAll('.like-btn').forEach(btn => {
             btn.addEventListener('click', function() {
+                if (!currentUser) {
+                    toggleAuthModal();
+                    return;
+                }
                 toggleLike(parseInt(this.dataset.id));
+            });
+        });
+
+        // Добавляем обработчики удаления
+        document.querySelectorAll('.delete-post').forEach(btn => {
+            btn.addEventListener('click', function() {
+                deletePost(parseInt(this.dataset.id));
             });
         });
     }
 
     // Добавление нового поста
     function addPost() {
+        if (!currentUser) {
+            toggleAuthModal();
+            return;
+        }
+        
         const content = postContent.value.trim();
         if (!content) return;
         
         const posts = JSON.parse(localStorage.getItem('posts')) || [];
         const newPost = {
             content: content,
+            author: currentUser,
             date: new Date().toISOString(),
-            likes: 0,
-            liked: false
+            likes: []
         };
         
         posts.push(newPost);
@@ -190,17 +264,28 @@ document.addEventListener('DOMContentLoaded', function() {
         loadPosts();
     }
 
+    // Удаление поста
+    function deletePost(postId) {
+        const posts = JSON.parse(localStorage.getItem('posts')) || [];
+        if (posts[postId]?.author === currentUser) {
+            posts.splice(postId, 1);
+            localStorage.setItem('posts', JSON.stringify(posts));
+            loadPosts();
+        }
+    }
+
     // Обработка лайков
     function toggleLike(postId) {
         const posts = JSON.parse(localStorage.getItem('posts')) || [];
         const post = posts[postId];
         
-        if (post.liked) {
-            post.likes--;
-            post.liked = false;
+        if (!post.likes) post.likes = [];
+        
+        const userIndex = post.likes.indexOf(currentUser);
+        if (userIndex === -1) {
+            post.likes.push(currentUser);
         } else {
-            post.likes++;
-            post.liked = true;
+            post.likes.splice(userIndex, 1);
         }
         
         localStorage.setItem('posts', JSON.stringify(posts));
@@ -216,9 +301,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 addPost();
             }
         });
+    }
 
-        // Инициализация
-        loadPosts();
+    // Обработчики модального окна
+    closeModal.addEventListener('click', toggleAuthModal);
+    authForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        if (loginUser(username, password)) {
+            toggleAuthModal();
+            loadPosts();
+        } else {
+            alert('Неверные данные!');
+        }
+    });
+    
+    registerBtn.addEventListener('click', function() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        if (registerUser(username, password)) {
+            alert('Регистрация успешна! Теперь войдите.');
+        }
+    });
+
+    // Проверка авторизации при загрузке
+    checkAuth();
+    loadPosts();
+
+    // ========== Проверка загрузки reCAPTCHA ==========
+    function checkRecaptchaLoad() {
+        if (typeof grecaptcha === 'undefined') {
+            console.error('reCAPTCHA не загрузилась');
+            showMessage("Ошибка загрузки проверки безопасности", "error");
+        }
     }
 
     // Проверяем через 5 секунд после загрузки
@@ -232,17 +350,3 @@ function onRecaptchaSuccess() {
         submitBtn.disabled = false;
     }
 }
-
-// Firebase инициализация (если нужно)
-// Должна быть в отдельном модуле или в начале файла
-/*
-import { initializeApp } from "firebase/app";
-import { getDatabase, ref, push, onValue } from "firebase/database";
-
-const firebaseConfig = {
-    // Ваши настройки Firebase
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-*/

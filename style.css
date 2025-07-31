@@ -303,4 +303,66 @@ body.dark .post {
 }
 .post:hover {
     transform: translateY(-3px);
+}/* Стили для модального окна */
+.modal {
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 300px;
+    position: relative;
+}
+
+body.dark .modal-content {
+    background: #333;
+}
+
+.close {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* Стили для социальных ссылок */
+.social-links {
+    margin: 20px 0;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.social-links a {
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+body.dark .social-links a {
+    color: #45a049;
+}
+
+/* Кнопка удаления поста */
+.delete-post {
+    background: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 6px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 10px;
 }
