@@ -370,7 +370,42 @@ body.dark .social-links a {
 #authModal:not(.hidden) {
     display: flex; /* Показываем, если нет класса hidden */
 }
+/* Темная тема */
+body.dark {
+    background-color: #121212;
+    color: #ffffff;
+}
 
+body.dark .card {
+    background-color: #1e1e1e;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+/* Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+}
+
+body.dark .modal-content {
+    background: #2d2d2d;
+    color: white;
+}
 /* Кнопка удаления поста */
 .delete-post {
     background: #ff4444;
@@ -381,4 +416,7 @@ body.dark .social-links a {
     cursor: pointer;
     font-size: 12px;
     margin-left: 10px;
+}
+@media (max-width: 600px) {
+    .card { width: 95%; }
 }

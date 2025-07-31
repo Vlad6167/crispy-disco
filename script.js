@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalImages = images.length;
     let galleryInterval;
 
-    // Показ текущего изображения
     function showImage(index) {
         images.forEach(img => img.classList.remove('active'));
         images[index].classList.add('active');
@@ -32,7 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
         resetGalleryInterval();
     }
 
-    // Сброс интервала автопрокрутки
     function resetGalleryInterval() {
         clearInterval(galleryInterval);
         galleryInterval = setInterval(() => {
@@ -41,7 +39,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
 
-    // Кнопки навигации
     document.getElementById('nextBtn').addEventListener('click', () => {
         showImage((currentIndex + 1) % totalImages);
     });
@@ -49,22 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('prevBtn').addEventListener('click', () => {
         showImage((currentIndex - 1 + totalImages) % totalImages);
     });
-document.addEventListener('DOMContentLoaded', function() {
-    // ... остальной код ...
 
-    // Закрытие по клику вне окна
-    document.getElementById('authModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            toggleAuthModal(false);
-        }
-    });
-
-    // Закрытие по крестику
-    document.querySelector('.close').addEventListener('click', function() {
-        toggleAuthModal(false);
-    });
-});
-    // Инициализация галереи
     showImage(0);
     resetGalleryInterval();
 
@@ -73,13 +55,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const formMessage = document.getElementById('formMessage');
     const submitBtn = document.getElementById('submitBtn');
 
-    // Валидация email
     function validateEmail(email) {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);
     }
 
-    // Показать сообщение
     function showMessage(text, type) {
         formMessage.textContent = text;
         formMessage.className = type;
@@ -90,29 +70,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     }
 
-    // Обработка отправки формы
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         try {
-            // Валидация email
             const emailInput = form.querySelector('input[type="email"]');
             if (!validateEmail(emailInput.value)) {
                 showMessage("Укажите правильный email", "error");
                 return;
             }
 
-            // Проверка reCAPTCHA
             if (typeof grecaptcha === 'undefined' || !grecaptcha.getResponse()) {
                 showMessage("Пожалуйста, подтвердите что вы не робот", "error");
                 return;
             }
 
-            // Блокируем кнопку во время отправки
             submitBtn.disabled = true;
             submitBtn.textContent = 'Отправка...';
 
-            // Отправка данных
             const response = await fetch(form.action, {
                 method: 'POST',
                 body: new FormData(form),
@@ -126,7 +101,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 showMessage("Сообщение отправлено! Скоро отвечу.", "success");
                 form.reset();
                 
-                // Сброс reCAPTCHA
                 if (window.grecaptcha) {
                     grecaptcha.reset();
                     submitBtn.disabled = true;
@@ -151,24 +125,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModal = document.querySelector('.close');
     const authForm = document.getElementById('authForm');
     const registerBtn = document.getElementById('registerBtn');
-
-    // Текущий пользователь
     let currentUser = null;
 
-    // Показать/скрыть модальное окно
-    function toggleAuthModal() {
-        authModal.classList.toggle('hidden');
+    function toggleAuthModal(show = null) {
+        if (show === true) {
+            authModal.classList.remove('hidden');
+        } else if (show === false) {
+            authModal.classList.add('hidden');
+        } else {
+            authModal.classList.toggle('hidden');
+        }
     }
 
-    // Загрузка пользователей из localStorage
     function getUsers() {
         return JSON.parse(localStorage.getItem('users')) || [];
     }
 
-    // Регистрация нового пользователя
     function registerUser(username, password) {
-        const users = getUsers();
+        if (!username || !password) {
+            alert('Заполните все поля!');
+            return false;
+        }
         
+        const users = getUsers();
         if (users.some(u => u.username === username)) {
             alert('Пользователь уже существует!');
             return false;
@@ -179,7 +158,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     }
 
-    // Авторизация пользователя
     function loginUser(username, password) {
         const users = getUsers();
         const user = users.find(u => u.username === username && u.password === password);
@@ -193,23 +171,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return false;
     }
 
-    // Выход пользователя
-    function logoutUser() {
-        currentUser = null;
-        localStorage.removeItem('currentUser');
-    }
-
-    // Проверка авторизации
     function checkAuth() {
         const user = localStorage.getItem('currentUser');
         if (user) {
             currentUser = user;
+            toggleAuthModal(false);
             return true;
         }
+        toggleAuthModal(true);
         return false;
     }
 
-    // Загрузка постов из localStorage
     function loadPosts() {
         const posts = JSON.parse(localStorage.getItem('posts')) || [];
         postsContainer.innerHTML = '';
@@ -234,18 +206,16 @@ document.addEventListener('DOMContentLoaded', function() {
             postsContainer.prepend(postElement);
         });
 
-        // Добавляем обработчики лайков
         document.querySelectorAll('.like-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 if (!currentUser) {
-                    toggleAuthModal();
+                    toggleAuthModal(true);
                     return;
                 }
                 toggleLike(parseInt(this.dataset.id));
             });
         });
 
-        // Добавляем обработчики удаления
         document.querySelectorAll('.delete-post').forEach(btn => {
             btn.addEventListener('click', function() {
                 deletePost(parseInt(this.dataset.id));
@@ -253,10 +223,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Добавление нового поста
     function addPost() {
         if (!currentUser) {
-            toggleAuthModal();
+            toggleAuthModal(true);
             return;
         }
         
@@ -264,21 +233,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!content) return;
         
         const posts = JSON.parse(localStorage.getItem('posts')) || [];
-        const newPost = {
+        posts.push({
             content: content,
             author: currentUser,
             date: new Date().toISOString(),
             likes: []
-        };
-        
-        posts.push(newPost);
+        });
         localStorage.setItem('posts', JSON.stringify(posts));
-        
         postContent.value = '';
         loadPosts();
     }
 
-    // Удаление поста
     function deletePost(postId) {
         const posts = JSON.parse(localStorage.getItem('posts')) || [];
         if (posts[postId]?.author === currentUser) {
@@ -288,14 +253,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Обработка лайков
     function toggleLike(postId) {
         const posts = JSON.parse(localStorage.getItem('posts')) || [];
         const post = posts[postId];
         
         if (!post.likes) post.likes = [];
-        
         const userIndex = post.likes.indexOf(currentUser);
+        
         if (userIndex === -1) {
             post.likes.push(currentUser);
         } else {
@@ -306,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadPosts();
     }
 
-    // Обработчики событий
+    // Инициализация
     if (postButton && postContent && postsContainer) {
         postButton.addEventListener('click', addPost);
         postContent.addEventListener('keypress', function(e) {
@@ -317,15 +281,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Обработчики модального окна
-    closeModal.addEventListener('click', toggleAuthModal);
+    closeModal.addEventListener('click', () => toggleAuthModal(false));
+    authModal.addEventListener('click', (e) => {
+        if (e.target === authModal) toggleAuthModal(false);
+    });
+
     authForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         
         if (loginUser(username, password)) {
-            toggleAuthModal();
+            toggleAuthModal(false);
             loadPosts();
         } else {
             alert('Неверные данные!');
@@ -337,60 +304,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const password = document.getElementById('password').value;
         
         if (registerUser(username, password)) {
-            alert('Регистрация успешна! Теперь войдите.');
+            loginUser(username, password);
+            toggleAuthModal(false);
+            loadPosts();
         }
     });
 
-    // Проверка авторизации при загрузке
     checkAuth();
     loadPosts();
 
-    // ========== Проверка загрузки reCAPTCHA ==========
-    function checkRecaptchaLoad() {
+    // Проверка reCAPTCHA
+    setTimeout(() => {
         if (typeof grecaptcha === 'undefined') {
             console.error('reCAPTCHA не загрузилась');
             showMessage("Ошибка загрузки проверки безопасности", "error");
         }
-    }
+    }, 5000);
+});
 
-    // Проверяем через 5 секунд после загрузки
-    setTimeout(checkRecaptchaLoad, 5000);
-});
-registerBtn.addEventListener('click', function() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    
-    if (registerUser(username, password)) {
-        loginUser(username, password); // Авторизуем после регистрации
-        toggleAuthModal();
-        loadPosts();
-    }
-});
-function checkAuth() {
-    const user = localStorage.getItem('currentUser');
-    if (user) {
-        currentUser = user;
-        toggleAuthModal(false); // Скрываем модалку
-        return true;
-    } else {
-        toggleAuthModal(true); // Показываем модалку
-        return false;
-    }
-}
-if (!username || !password) {
-    alert('Заполните все поля!');
-    return;
-}
-function toggleAuthModal(show = null) {
-    const authModal = document.getElementById('authModal');
-    if (show === true) {
-        authModal.classList.remove('hidden');
-    } else if (show === false) {
-        authModal.classList.add('hidden');
-    } else {
-        authModal.classList.toggle('hidden');
-    }
-}
 // Глобальная функция для reCAPTCHA
 function onRecaptchaSuccess() {
     const submitBtn = document.getElementById('submitBtn');
