@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Моя первая страница</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="card">
+        <img src="https://sun9-53.userapi.com/s/v1/if1/hbTkTce-y_3qODe_yKqueX2zeUZrGft4g_xHbmZ9khpklJ9MjkDLYOvZCi-K3NpuOF24KDYN.jpg?quality=96&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,640x427,720x480,1080x720,1280x853,1440x960,2560x1707&from=bu&cs=1280x0" alt="Моё фото">
+        <h1>Привет, меня зовут Владислав!</h1>
+        <p>Я начинающий веб-разработчик.</p>
+        
+        <h2>Мои увлечения: </h2>
+        <ul>
+            <li>Программирование</li>
+            <li>Написание сайтов </li>
+            <li>Приложений для мобильных устройств</li>
+        </ul>
+        <button id="themeToggle">🌓 Сменить тему</button>
+        <div class="gallery">
+    <h2>Мои работы</h2>
+    <div class="gallery-container">
+        <img src="https://placehold.co/600x400?text=Фото+1" alt="Пример работы 1" class="gallery-img active">
+        <img src="https://placehold.co/600x400?text=Фото+2" alt="Пример работы 2" class="gallery-img">
+        <img src="https://placehold.co/600x400?text=Фото+3" alt="Пример работы 3" class="gallery-img">
+    </div>
+    <div class="gallery-controls">
+        <button id="prevBtn">← Назад</button>
+        <button id="nextBtn">Вперёд →</button>
+    </div>
+</div>
+        <div class="footer">
+            © 2024 Моя первая страница
+        </div><div class="contact-form">
+    <h2>Напиши мне</h2>
+   <form action="https://formspree.io/f/manbbdro" method="POST" id="feedbackForm">
+    <input type="text" name="name" placeholder="Владислав" required>
+    <input type="email" name="email" placeholder="Email" required>
+    <textarea name="message" placeholder="Ваше сообщение..." rows="4" required></textarea>
+    <!-- Поля формы -->
+    <div class="g-recaptcha" data-sitekey="6LfropUrAAAAABPu9UiPo3Tso7-WRdv4KNpVWPlL"></div>
+    <button type="submit">Отправить</button>
+</form>
+<!-- Подключи скрипт reCAPTCHA -->
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</form>
+    <div id="formMessage" class="hidden"></div>
+</div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
