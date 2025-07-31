@@ -1,23 +1,26 @@
-// script.js (исправленный)
 document.addEventListener('DOMContentLoaded', function() {
-    // ===== Тема =====
-    const themeToggle = document.getElementById('themeToggle');
+    // ========== Общие элементы ==========
     const body = document.body;
+    let currentUser = localStorage.getItem('currentUser') || null;
+
+    // ========== Переключение темы ==========
+    const themeToggle = document.getElementById('themeToggle');
     
-    // Загрузка темы
-    if (localStorage.getItem('theme') === 'dark') {
+    // Проверяем сохраненную тему
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
         body.classList.add('dark');
         themeToggle.textContent = '🌞 Светлая тема';
     }
-
-    themeToggle.addEventListener('click', () => {
+    
+    themeToggle.addEventListener('click', function() {
         body.classList.toggle('dark');
         const isDark = body.classList.contains('dark');
+        themeToggle.textContent = isDark ? '🌞 Светлая тема' : '🌓 Тёмная тема';
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        themeToggle.textContent = isDark ? '🌞 Светлая тема' : '🌓 Темная тема';
     });
 
-    // ===== Галерея =====
+    // ========== Галерея изображений ==========
     let currentIndex = 0;
     const images = document.querySelectorAll('.gallery-img');
     const totalImages = images.length;
@@ -30,19 +33,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function startGallery() {
+        clearInterval(galleryInterval);
         galleryInterval = setInterval(() => {
             showImage((currentIndex + 1) % totalImages);
         }, 3000);
     }
 
     document.getElementById('nextBtn').addEventListener('click', () => {
-        clearInterval(galleryInterval);
         showImage((currentIndex + 1) % totalImages);
         startGallery();
     });
 
     document.getElementById('prevBtn').addEventListener('click', () => {
-        clearInterval(galleryInterval);
         showImage((currentIndex - 1 + totalImages) % totalImages);
         startGallery();
     });
@@ -50,51 +52,147 @@ document.addEventListener('DOMContentLoaded', function() {
     showImage(0);
     startGallery();
 
-    // ===== Модальное окно =====
+    // ========== Модальное окно ==========
     const authModal = document.getElementById('authModal');
     const authForm = document.getElementById('authForm');
     const registerBtn = document.getElementById('registerBtn');
-    let currentUser = localStorage.getItem('currentUser') || null;
 
-    function toggleModal(show) {
+    function toggleAuthModal(show) {
         authModal.style.display = show ? 'flex' : 'none';
     }
 
     // Закрытие по клику вне окна
     authModal.addEventListener('click', (e) => {
-        if (e.target === authModal) toggleModal(false);
+        if (e.target === authModal) toggleAuthModal(false);
     });
 
     // Закрытие по крестику
     document.querySelector('.modal-content .close').addEventListener('click', () => {
-        toggleModal(false);
+        toggleAuthModal(false);
     });
 
-    // ===== Социальная сеть =====
+    // ========== Социальная сеть ==========
+    const postButton = document.getElementById('postButton');
+    const postContent = document.getElementById('postContent');
+    const postsContainer = document.getElementById('postsContainer');
+
+    function getUsers() {
+        return JSON.parse(localStorage.getItem('users')) || [];
+    }
+
+    function registerUser(username, password) {
+        if (!username || !password) {
+            alert('Заполните все поля!');
+            return false;
+        }
+        
+        const users = getUsers();
+        if (users.some(u => u.username === username)) {
+            alert('Пользователь уже существует!');
+            return false;
+        }
+        
+        users.push({ username, password });
+        localStorage.setItem('users', JSON.stringify(users));
+        return true;
+    }
+
+    function loginUser(username, password) {
+        const users = getUsers();
+        const user = users.find(u => u.username === username && u.password === password);
+        
+        if (user) {
+            currentUser = username;
+            localStorage.setItem('currentUser', username);
+            return true;
+        }
+        
+        return false;
+    }
+
     function loadPosts() {
         const posts = JSON.parse(localStorage.getItem('posts')) || [];
         postsContainer.innerHTML = posts.map((post, index) => `
             <div class="post">
                 <div class="post-header">
-                    <strong>${post.author}</strong>
-                    ${post.author === currentUser ? 
+                    <strong>${post.author || 'Аноним'}</strong>
+                    ${currentUser === post.author ? 
                         `<button class="delete-post" data-id="${index}">Удалить</button>` : ''}
                 </div>
                 <div class="post-content">${post.content}</div>
+                <div class="post-actions">
+                    <button class="like-btn" data-id="${index}">
+                        ${post.likes?.includes(currentUser) ? '❤️' : '🤍'} ${post.likes?.length || 0}
+                    </button>
+                </div>
                 <div class="post-date">${new Date(post.date).toLocaleString()}</div>
             </div>
-        `).join('');
+        `).reverse().join('');
+
+        // Добавляем обработчики для новых элементов
+        document.querySelectorAll('.like-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (!currentUser) {
+                    toggleAuthModal(true);
+                    return;
+                }
+                toggleLike(parseInt(this.dataset.id));
+            });
+        });
+
+        document.querySelectorAll('.delete-post').forEach(btn => {
+            btn.addEventListener('click', function() {
+                deletePost(parseInt(this.dataset.id));
+            });
+        });
     }
 
-    // Проверка авторизации при загрузке
-    if (!currentUser) {
-        toggleModal(true);
-    } else {
+    function addPost() {
+        if (!currentUser) {
+            toggleAuthModal(true);
+            return;
+        }
+        
+        const content = postContent.value.trim();
+        if (!content) return;
+        
+        const posts = JSON.parse(localStorage.getItem('posts')) || [];
+        posts.push({
+            content: content,
+            author: currentUser,
+            date: new Date().toISOString(),
+            likes: []
+        });
+        localStorage.setItem('posts', JSON.stringify(posts));
+        postContent.value = '';
         loadPosts();
     }
 
-    // Остальной код...
-});
+    function deletePost(postId) {
+        const posts = JSON.parse(localStorage.getItem('posts')) || [];
+        if (posts[postId]?.author === currentUser) {
+            posts.splice(postId, 1);
+            localStorage.setItem('posts', JSON.stringify(posts));
+            loadPosts();
+        }
+    }
+
+    function toggleLike(postId) {
+        const posts = JSON.parse(localStorage.getItem('posts')) || [];
+        const post = posts[postId];
+        
+        if (!post.likes) post.likes = [];
+        const userIndex = post.likes.indexOf(currentUser);
+        
+        if (userIndex === -1) {
+            post.likes.push(currentUser);
+        } else {
+            post.likes.splice(userIndex, 1);
+        }
+        
+        localStorage.setItem('posts', JSON.stringify(posts));
+        loadPosts();
+    }
 
     // ========== Форма обратной связи ==========
     const form = document.getElementById('feedbackForm');
@@ -163,181 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ========== Социальная сеть ==========
-    const postButton = document.getElementById('postButton');
-    const postContent = document.getElementById('postContent');
-    const postsContainer = document.getElementById('postsContainer');
-    const authModal = document.getElementById('authModal');
-    const closeModal = document.querySelector('.close');
-    const authForm = document.getElementById('authForm');
-    const registerBtn = document.getElementById('registerBtn');
-    let currentUser = null;
-
-    function toggleAuthModal(show = null) {
-        if (show === true) {
-            authModal.classList.remove('hidden');
-        } else if (show === false) {
-            authModal.classList.add('hidden');
-        } else {
-            authModal.classList.toggle('hidden');
-        }
-    }
-
-    function getUsers() {
-        return JSON.parse(localStorage.getItem('users')) || [];
-    }
-
-    function registerUser(username, password) {
-        if (!username || !password) {
-            alert('Заполните все поля!');
-            return false;
-        }
-        
-        const users = getUsers();
-        if (users.some(u => u.username === username)) {
-            alert('Пользователь уже существует!');
-            return false;
-        }
-        
-        users.push({ username, password });
-        localStorage.setItem('users', JSON.stringify(users));
-        return true;
-    }
-
-    function loginUser(username, password) {
-        const users = getUsers();
-        const user = users.find(u => u.username === username && u.password === password);
-        
-        if (user) {
-            currentUser = username;
-            localStorage.setItem('currentUser', username);
-            return true;
-        }
-        
-        return false;
-    }
-
-    function checkAuth() {
-        const user = localStorage.getItem('currentUser');
-        if (user) {
-            currentUser = user;
-            toggleAuthModal(false);
-            return true;
-        }
-        toggleAuthModal(true);
-        return false;
-    }
-
-    function loadPosts() {
-        const posts = JSON.parse(localStorage.getItem('posts')) || [];
-        postsContainer.innerHTML = '';
-        
-        posts.forEach((post, index) => {
-            const postElement = document.createElement('div');
-            postElement.className = 'post';
-            postElement.innerHTML = `
-                <div class="post-header">
-                    <strong>${post.author || 'Аноним'}</strong>
-                    ${currentUser === post.author ? 
-                      `<button class="delete-post" data-id="${index}">Удалить</button>` : ''}
-                </div>
-                <div class="post-content">${post.content}</div>
-                <div class="post-actions">
-                    <button class="like-btn" data-id="${index}">
-                        ${post.likes?.includes(currentUser) ? '❤️' : '🤍'} ${post.likes?.length || 0}
-                    </button>
-                </div>
-                <div class="post-date">${new Date(post.date).toLocaleString()}</div>
-            `;
-            postsContainer.prepend(postElement);
-        });
-
-        document.querySelectorAll('.like-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (!currentUser) {
-                    toggleAuthModal(true);
-                    return;
-                }
-                toggleLike(parseInt(this.dataset.id));
-            });
-        });
-
-        document.querySelectorAll('.delete-post').forEach(btn => {
-            btn.addEventListener('click', function() {
-                deletePost(parseInt(this.dataset.id));
-            });
-        });
-    }
-
-    function addPost() {
-        if (!currentUser) {
-            toggleAuthModal(true);
-            return;
-        }
-        
-        const content = postContent.value.trim();
-        if (!content) return;
-        
-        const posts = JSON.parse(localStorage.getItem('posts')) || [];
-        posts.push({
-            content: content,
-            author: currentUser,
-            date: new Date().toISOString(),
-            likes: []
-        });
-        localStorage.setItem('posts', JSON.stringify(posts));
-        postContent.value = '';
-        loadPosts();
-    }
-
-    function deletePost(postId) {
-        const posts = JSON.parse(localStorage.getItem('posts')) || [];
-        if (posts[postId]?.author === currentUser) {
-            posts.splice(postId, 1);
-            localStorage.setItem('posts', JSON.stringify(posts));
-            loadPosts();
-        }
-    }
-
-    function toggleLike(postId) {
-        const posts = JSON.parse(localStorage.getItem('posts')) || [];
-        const post = posts[postId];
-        // В script.js
-function resetGalleryInterval() {
-  clearInterval(galleryInterval);
-  galleryInterval = setInterval(() => {
-    showImage((currentIndex + 1) % totalImages);
-  }, 3000); // 3 секунды
-}
-        if (!post.likes) post.likes = [];
-        const userIndex = post.likes.indexOf(currentUser);
-        
-        if (userIndex === -1) {
-            post.likes.push(currentUser);
-        } else {
-            post.likes.splice(userIndex, 1);
-        }
-        
-        localStorage.setItem('posts', JSON.stringify(posts));
-        loadPosts();
-    }
-
-    // Инициализация
-    if (postButton && postContent && postsContainer) {
-        postButton.addEventListener('click', addPost);
-        postContent.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                addPost();
-            }
-        });
-    }
-
-    closeModal.addEventListener('click', () => toggleAuthModal(false));
-    authModal.addEventListener('click', (e) => {
-        if (e.target === authModal) toggleAuthModal(false);
-    });
-
+    // ========== Инициализация ==========
     authForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const username = document.getElementById('username').value;
@@ -362,8 +286,12 @@ function resetGalleryInterval() {
         }
     });
 
-    checkAuth();
-    loadPosts();
+    // Проверка авторизации при загрузке
+    if (!currentUser) {
+        toggleAuthModal(true);
+    } else {
+        loadPosts();
+    }
 
     // Проверка reCAPTCHA
     setTimeout(() => {
@@ -372,25 +300,8 @@ function resetGalleryInterval() {
             showMessage("Ошибка загрузки проверки безопасности", "error");
         }
     }, 5000);
-
-// Закрытие по клику вне окна
-document.addEventListener('click', (e) => {
-  if (e.target === authModal) toggleAuthModal(false);
 });
 
-// Валидация формы
-authForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
-  
-  if (!username || !password) {
-    alert('Заполните все поля!');
-    return;
-  }
-  
-  // ...остальная логика
-});
 // Глобальная функция для reCAPTCHA
 function onRecaptchaSuccess() {
     const submitBtn = document.getElementById('submitBtn');
